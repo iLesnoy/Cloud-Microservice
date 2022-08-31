@@ -1,10 +1,11 @@
 package com.petrovskiy.epm.controller;
 
-import com.petrovskiy.epm.service.UserService;
-import com.petrovskiy.epm.service.dto.UserDto;
+import com.petrovskiy.epm.UserService;
+import com.petrovskiy.epm.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +16,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public Page<UserDto> findAll(@PathVariable Pageable pageable) {
+    public Page<UserDto> findAll(@PageableDefault(value = 2, page = 0)Pageable pageable) {
         return userService.findAll(pageable);
     }
     @GetMapping("/{id}")
