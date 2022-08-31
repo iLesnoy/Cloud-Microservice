@@ -1,8 +1,8 @@
-package com.petrovskiy.epm.service.impl;
+package com.petrovskiy.epm.impl;
 
-import com.petrovskiy.epm.service.OrderService;
-import com.petrovskiy.epm.service.dto.RequestOrderDto;
-import com.petrovskiy.epm.service.dto.ResponseOrderDto;
+import com.petrovskiy.epm.dto.RequestOrderDto;
+import com.petrovskiy.epm.dto.ResponseOrderDto;
+import com.petrovskiy.epm.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
