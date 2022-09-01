@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Data
-@Table(name = "tag")
+@Table(name = "tags")
 @Entity
 public class Tag{
 
@@ -18,7 +18,7 @@ public class Tag{
     @Column(name = "name", unique = true, nullable = false, updatable = false)
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "tagList")
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "tagList")
     private Set<GiftCertificate> certificates;
 
 }

@@ -3,16 +3,13 @@ package com.petrovskiy.epm.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.petrovskiy.epm.model.Role;
-import lombok.*;
+import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 
-@Getter
-@Setter
-@EqualsAndHashCode
-@Builder
+@Data
 @JsonPropertyOrder({"id", "name", "role"})
 public class UserDto {
 
@@ -32,5 +29,5 @@ public class UserDto {
     private String password;
 
     @JsonProperty("role")
-    private List<Role> role;
+    private Set<Role> role;
 }

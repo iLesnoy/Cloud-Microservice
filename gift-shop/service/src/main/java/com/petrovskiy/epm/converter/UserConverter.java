@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 public class UserConverter {
 
     public UserDto userToDto(User user){
-        return UserDto.builder().id(user.getId())
+        return null;/*UserDto.builder().id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .password(user.getPassword())
-                .role(user.getRoles().stream().toList()).build();
+                .role(user.getRole()).build();*/
     }
 }

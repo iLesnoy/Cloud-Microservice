@@ -3,7 +3,7 @@ package com.petrovskiy.epm.model;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.Collection;
+import java.util.Set;
 
 @Data
 @Entity
@@ -16,6 +16,6 @@ public class Privilege {
 
     private String name;
 
-    @ManyToMany(mappedBy = "privileges")
-    private Collection<Role> roles;
+    /*@ManyToMany(mappedBy = "privilege",fetch = FetchType.LAZY)
+    private Set<Role> roles;*/
 }

@@ -4,10 +4,11 @@ import com.petrovskiy.epm.UserService;
 import com.petrovskiy.epm.converter.UserConverter;
 import com.petrovskiy.epm.dao.RoleRepository;
 import com.petrovskiy.epm.dao.UserRepository;
+import com.petrovskiy.epm.dto.CustomPage;
+import com.petrovskiy.epm.dto.ResponseOrderDto;
+import com.petrovskiy.epm.dto.UserDto;
 import com.petrovskiy.epm.model.Role;
 import com.petrovskiy.epm.model.User;
-import com.petrovskiy.epm.dto.CustomPage;
-import com.petrovskiy.epm.dto.UserDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     private void setParamsToNewUser(User user){
         Role role = roleRepository.findByName("USER");
-        user.setRoles(Set.of(role));
+        user.setRole(Set.of(role));
     }
 
 
@@ -74,5 +74,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id) {
 
+    }
+
+    @Override
+    public User findUserById(Long id) {
+        return null;
+    }
+
+    @Override
+    public UserDto findByName(String name) {
+        return null;
+    }
+
+    @Override
+    public Page<ResponseOrderDto> findUserOrderList(Long id, Pageable pageable) {
+        return null;
     }
 }
