@@ -5,9 +5,11 @@ import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.RequestOrderDto;
 import com.petrovskiy.epm.dto.ResponseOrderDto;
 import com.petrovskiy.epm.OrderService;
+import com.petrovskiy.epm.dto.UserDto;
 import com.petrovskiy.epm.mapper.GiftCertificateMapper;
 import com.petrovskiy.epm.mapper.OrderMapper;
 import com.petrovskiy.epm.mapper.OrderMapperImpl;
+import com.petrovskiy.epm.mapper.impl.CustomOrderMapperImpl;
 import com.petrovskiy.epm.model.GiftCertificate;
 import com.petrovskiy.epm.model.Order;
 import com.petrovskiy.epm.model.User;
@@ -33,12 +35,12 @@ public class OrderServiceImpl implements OrderService {
     private final EntityValidator validator;
     private final UserServiceImpl userService;
     private final GiftCertificateServiceImpl giftCertificateService;
-    private final OrderMapper orderMapper;
+    private final CustomOrderMapperImpl orderMapper;
 
     @Autowired
     public OrderServiceImpl(OrderRepository orderRepository, EntityValidator validator, UserServiceImpl userService,
                             GiftCertificateServiceImpl giftCertificateService,
-                            OrderMapper orderMapper) {
+                            CustomOrderMapperImpl orderMapper) {
         this.orderRepository = orderRepository;
         this.validator = validator;
         this.userService = userService;
@@ -61,7 +63,9 @@ public class OrderServiceImpl implements OrderService {
         User user = userService.findUserById(orderDto.getUserId());
         List<GiftCertificate> giftCertificates = orderDto.getCertificateIdList()
                 .stream().map(giftCertificateService::findCertificateById).collect(Collectors.toList());
-        Order order = Order.builder().user(user).certificateList(giftCertificates).build();
+        Order order = Order.builder()
+                .user(user)
+                .certificateList(giftCertificates).build();
         return orderMapper.orderToDto(orderRepository.save(order));
     }
 

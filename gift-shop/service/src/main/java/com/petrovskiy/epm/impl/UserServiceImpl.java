@@ -7,13 +7,11 @@ import com.petrovskiy.epm.dao.UserRepository;
 import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.ResponseOrderDto;
 import com.petrovskiy.epm.dto.UserDto;
-import com.petrovskiy.epm.mapper.OrderMapper;
-import com.petrovskiy.epm.mapper.OrderMapperImpl;
+import com.petrovskiy.epm.exception.SystemException;
 import com.petrovskiy.epm.mapper.UserMapper;
 import com.petrovskiy.epm.mapper.UserMapperImpl;
 import com.petrovskiy.epm.mapper.impl.CustomOrderMapperImpl;
 import com.petrovskiy.epm.model.Order;
-import com.petrovskiy.epm.model.Role;
 import com.petrovskiy.epm.model.User;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +20,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.SystemException;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static com.petrovskiy.epm.exception.ExceptionCode.*;
+import static com.petrovskiy.epm.exception.ExceptionCode.DUPLICATE_NAME;
+import static com.petrovskiy.epm.exception.ExceptionCode.NON_EXISTENT_ENTITY;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -53,8 +49,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         userRepository.findByEmail(userDto.getEmail()).ifPresent(a -> {
-            throw new com.petrovskiy.epm.exception.SystemException(DUPLICATE_NAME);
+            throw new SystemException(DUPLICATE_NAME);
         });
+        setParamsToNewUser(userDto);
         User user = userMapper.dtoToUser(userDto);
         return userMapper.userToDto(userRepository.save(user));
     }

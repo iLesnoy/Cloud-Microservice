@@ -24,7 +24,7 @@ public class Order {
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     private Long id;
 
-    @Future
+    /*@Future*/
     @Column(name = "order_date", nullable = false)
     private LocalDateTime purchaseTime;
 
