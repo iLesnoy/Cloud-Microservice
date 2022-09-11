@@ -1,17 +1,23 @@
 package com.petrovskiy.epm.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "roles")
 public class Role {
@@ -20,10 +26,13 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @NotBlank
+    @Pattern(regexp = "^[\\p{Alpha}]{4,10}$")
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @JsonIgnore
-    @ManyToMany(fetch = FetchType.LAZY)
+
+    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "roles_privileges",
             joinColumns = @JoinColumn(
@@ -33,7 +42,8 @@ public class Role {
     private Set<Privilege> privilege = new HashSet<>();
 
     @JsonBackReference
-    @ManyToMany(mappedBy = "role",fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "role",fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
+    @ToString.Exclude
     private Set<User> users;
 
     @Override
