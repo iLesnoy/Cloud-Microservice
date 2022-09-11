@@ -7,9 +7,9 @@ import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.GiftCertificateAttributeDto;
 import com.petrovskiy.epm.dto.GiftCertificateDto;
 import com.petrovskiy.epm.dto.TagDto;
-import com.petrovskiy.epm.mapper.GiftCertificateAttributeMapper;
 import com.petrovskiy.epm.mapper.GiftCertificateMapperImpl;
 import com.petrovskiy.epm.mapper.TagMapperImpl;
+import com.petrovskiy.epm.mapper.impl.CustomGiftMapperImpl;
 import com.petrovskiy.epm.model.GiftCertificate;
 import com.petrovskiy.epm.model.Tag;
 import com.petrovskiy.epm.validator.EntityValidator;
@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.transaction.SystemException;
+import com.petrovskiy.epm.exception.SystemException;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,24 +40,26 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final TagMapperImpl tagMapper = new TagMapperImpl();
     private final GiftCertificateRepository giftCertificateRepository;
     private final TagServiceImpl tagService;
+    private final CustomGiftMapperImpl certificateMapper;
     private EntityValidator validator;
     private final OrderRepository orderRepository;
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, TagServiceImpl tagService,
-                                      OrderRepository orderRepository) {
+                                      OrderRepository orderRepository, CustomGiftMapperImpl getGiftMapper) {
         this.giftCertificateRepository = giftCertificateRepository;
         this.tagService = tagService;
         this.orderRepository = orderRepository;
+        this.certificateMapper = getGiftMapper;
     }
 
     @Override
     @Transactional
     public GiftCertificateDto create(GiftCertificateDto giftCertificateDto) {
-        GiftCertificate giftCertificate = giftMapper.dtoToGift(giftCertificateDto);
+        GiftCertificate giftCertificate = certificateMapper.dtoToGift(giftCertificateDto);
         setTagListCertificate(giftCertificate);
         giftCertificateRepository.save(giftCertificate);
-        return giftMapper.giftToDto(giftCertificate);
+        return certificateMapper.giftToDto(giftCertificate);
     }
 
     private void setTagListCertificate(GiftCertificate certificate) {
@@ -67,7 +70,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public GiftCertificateDto update(Long id, GiftCertificateDto giftCertificateDto) {
-        validator.checkGiftValidation(giftCertificateDto);
         GiftCertificate persistedCertificate = findCertificateById(id);
 
         setUpdatedFields(persistedCertificate, giftCertificateDto);
@@ -80,7 +82,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     public GiftCertificateDto findById(Long id) {
         GiftCertificate certificateDto = findCertificateById(id);
-        return giftMapper.giftToDto(certificateDto); /*fix mapper */
+        return certificateMapper.giftToDto(certificateDto);
     }
 
     @Override
@@ -135,13 +137,21 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Transactional
     public void delete(Long id) {
         Optional<GiftCertificate> optionalGiftCertificate = giftCertificateRepository.findById(id);
-        if(optionalGiftCertificate.isPresent()) {
+        optionalGiftCertificate.ifPresentOrElse(a -> {
+            orderRepository.findFirstByCertificateListId(id).ifPresentOrElse(b -> {
+                throw new SystemException(USED_ENTITY);
+            }, () -> giftCertificateRepository.delete(optionalGiftCertificate.get()));
+        }, () -> {
+            throw new SystemException(NON_EXISTENT_ENTITY);
+        });
+
+        /*if(optionalGiftCertificate.isPresent()) {
             if (orderRepository.findFirstByCertificateListId(id).isPresent()) {
                 throw new SystemException(USED_ENTITY);
             } else {
                 giftCertificateRepository.delete(optionalGiftCertificate.get());
             }
-        }else throw new SystemException(NON_EXISTENT_ENTITY);
+        }else throw new SystemException(NON_EXISTENT_ENTITY);*/
         /*orderRepository.findFirstByCertificateListId(id).ifPresentOrElse(a->giftCertificateRepository.delete(optionalGiftCertificate.get()),
                 ()->{throw new SystemException(NON_EXISTENT_ENTITY);});*/
     }

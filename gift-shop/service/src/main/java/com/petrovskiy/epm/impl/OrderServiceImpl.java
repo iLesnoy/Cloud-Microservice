@@ -5,6 +5,7 @@ import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.RequestOrderDto;
 import com.petrovskiy.epm.dto.ResponseOrderDto;
 import com.petrovskiy.epm.OrderService;
+import com.petrovskiy.epm.mapper.GiftCertificateMapper;
 import com.petrovskiy.epm.mapper.OrderMapper;
 import com.petrovskiy.epm.mapper.OrderMapperImpl;
 import com.petrovskiy.epm.model.GiftCertificate;
@@ -32,15 +33,17 @@ public class OrderServiceImpl implements OrderService {
     private final EntityValidator validator;
     private final UserServiceImpl userService;
     private final GiftCertificateServiceImpl giftCertificateService;
-    private final OrderMapper orderMapper = new OrderMapperImpl();
+    private final OrderMapper orderMapper;
 
     @Autowired
     public OrderServiceImpl(OrderRepository orderRepository, EntityValidator validator, UserServiceImpl userService,
-                            GiftCertificateServiceImpl giftCertificateService) {
+                            GiftCertificateServiceImpl giftCertificateService,
+                            OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
         this.validator = validator;
         this.userService = userService;
         this.giftCertificateService = giftCertificateService;
+        this.orderMapper = orderMapper;
     }
 
     @Override

@@ -1,17 +1,24 @@
 package com.petrovskiy.epm.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.mapstruct.Builder;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@RequiredArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -21,15 +28,26 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @NotEmpty
+    @NotBlank(message = "firstName is mandatory")
+    @Pattern(regexp = "^[\\p{Alpha}А-Яа-я]{2,65}$")
     private String firstName;
+
+    @NotBlank(message = "lastName is mandatory")
+    @Pattern(regexp = "^[\\p{Alpha}А-Яа-я]{2,65}$")
     private String lastName;
+
+    @NotBlank(message = "Email is mandatory")
+    @Email
+    @Column(unique = true)
     private String email;
+
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z]|[A-Z]).{8,20}$")
     private String password;
     /*private boolean enabled;
     private boolean tokenExpired;*/
 
-    @JsonManagedReference
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(
@@ -39,6 +57,7 @@ public class User {
     private Set<Role> role = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @ToString.Exclude
     private List<Order>orderList;
 
     @Override

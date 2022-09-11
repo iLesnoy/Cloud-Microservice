@@ -1,56 +1,69 @@
 package com.petrovskiy.epm.impl;
 
 import com.petrovskiy.epm.UserService;
-import com.petrovskiy.epm.converter.UserConverter;
+import com.petrovskiy.epm.dao.OrderRepository;
 import com.petrovskiy.epm.dao.RoleRepository;
 import com.petrovskiy.epm.dao.UserRepository;
 import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.ResponseOrderDto;
 import com.petrovskiy.epm.dto.UserDto;
+import com.petrovskiy.epm.mapper.OrderMapper;
+import com.petrovskiy.epm.mapper.OrderMapperImpl;
+import com.petrovskiy.epm.mapper.UserMapper;
+import com.petrovskiy.epm.mapper.UserMapperImpl;
+import com.petrovskiy.epm.mapper.impl.CustomOrderMapperImpl;
+import com.petrovskiy.epm.model.Order;
 import com.petrovskiy.epm.model.Role;
 import com.petrovskiy.epm.model.User;
-import org.modelmapper.ModelMapper;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.transaction.SystemException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.petrovskiy.epm.exception.ExceptionCode.*;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final UserConverter userConverter;
+    private final UserMapper userMapper = new UserMapperImpl();
+    private final OrderRepository orderRepository;
+    private final CustomOrderMapperImpl orderMapper;
     /*private PasswordEncoder passwordEncoder;*/
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserConverter userConverter) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+                           OrderRepository orderRepository,CustomOrderMapperImpl orderMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.userConverter = userConverter;
-    }
+        this.orderRepository = orderRepository;
+        this.orderMapper = orderMapper;
 
-    private final ModelMapper mapper = new ModelMapper();
+    }
 
     @Transactional
     @Override
     public UserDto create(UserDto userDto) {
-        userRepository.findAll();
-        User user = mapper.map(userDto,User.class);
-        setParamsToNewUser(user);
-        userRepository.save(user);
-        return userDto;
+        userRepository.findByEmail(userDto.getEmail()).ifPresent(a -> {
+            throw new com.petrovskiy.epm.exception.SystemException(DUPLICATE_NAME);
+        });
+        User user = userMapper.dtoToUser(userDto);
+        return userMapper.userToDto(userRepository.save(user));
     }
 
-    private void setParamsToNewUser(User user){
-        Role role = roleRepository.findByName("USER");
-        user.setRole(Set.of(role));
+    private void setParamsToNewUser(UserDto user){
+        roleRepository.findByName("USER").ifPresent(a->{
+            user.setRole(Set.of(a));
+        });
     }
-
 
 
     @Override
@@ -60,34 +73,52 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findById(Long id) {
-        Optional<User> user  = userRepository.findById(id); //orElseGet
-        return userConverter.userToDto(user.get());
+        User user = userRepository.findById(id).orElseThrow(()-> new com.petrovskiy.epm.exception.SystemException(NON_EXISTENT_ENTITY));
+        return userMapper.userToDto(user);
     }
 
     @Override
     public Page<UserDto> findAll(Pageable pageable) {
         Page<User> orderPage = userRepository.findAll(pageable);
         return new CustomPage<>(orderPage.getContent(), orderPage.getPageable(), orderPage.getTotalElements())
-                .map(userConverter::userToDto);
+                .map(userMapper::userToDto);
     }
 
+    @SneakyThrows
     @Override
     public void delete(Long id) {
-
+        User user = userRepository.findById(id).orElseThrow(()->new SystemException(NON_EXISTENT_ENTITY));
+        userRepository.delete(user);
     }
 
+    @SneakyThrows
     @Override
     public User findUserById(Long id) {
-        return null;
+        return userRepository.findById(id).orElseThrow(() -> new SystemException(NON_EXISTENT_ENTITY));
     }
 
+    @SneakyThrows
     @Override
-    public UserDto findByName(String name) {
-        return null;
+    public UserDto findByName(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(()-> new SystemException(NON_EXISTENT_ENTITY));
+        return userMapper.userToDto(user);
     }
 
+
+    @SneakyThrows
     @Override
     public Page<ResponseOrderDto> findUserOrderList(Long id, Pageable pageable) {
-        return null;
+        if (!userRepository.existsById(id)) {
+            throw new SystemException(NON_EXISTENT_ENTITY);
+        }
+        Page<Order> orderPage = orderRepository.findOrderByUserId(id, pageable);
+        /*if (!validation.isPageExists(pageable, orderPage.getTotalElements())) {
+            throw new SystemException(NON_EXISTENT_PAGE);
+        }*/
+        return new CustomPage<>(orderPage.getContent(), orderPage.getPageable(), orderPage.getTotalElements())
+                .map(orderMapper::orderToDto);
     }
+
+
+
 }

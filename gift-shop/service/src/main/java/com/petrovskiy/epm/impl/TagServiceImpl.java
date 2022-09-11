@@ -26,10 +26,10 @@ import static com.petrovskiy.epm.exception.ExceptionCode.*;
 @Service
 public class TagServiceImpl implements TagService {
 
-    private TagRepository tagRepository;
-    private TagMapper tagMapper = new TagMapperImpl();
-    private EntityValidator entityValidator;
-    private GiftCertificateRepository giftCertificateRepository;
+    private final TagRepository tagRepository;
+    private final EntityValidator entityValidator;
+    private final GiftCertificateRepository giftCertificateRepository;
+    private final TagMapper tagMapper = new TagMapperImpl();
 
 
     @Autowired
@@ -47,23 +47,15 @@ public class TagServiceImpl implements TagService {
         return tagMapper.tagToDto(tag);
     }
 
-    @SneakyThrows
     public Tag createTag(Tag tag) {
-        if (entityValidator.isNameValid(tag.getName())) {
-            return tagRepository.findByName(tag.getName()).orElseGet(() -> tagRepository.save(tag));
-        }
-        throw new SystemException(TAG_INVALID_NAME);
+        return tagRepository.findByName(tag.getName()).orElseGet(() -> tagRepository.save(tag));
     }
 
     @SneakyThrows
     @Override
     public TagDto update(Long id, TagDto tagDto) {
-        Tag tag = findTagById(id);
-        if (!entityValidator.isNameValid(tag.getName())) {
-            throw new SystemException(TAG_INVALID_NAME);
-        }
-        tagRepository.save(tagMapper.dtoToTag(tagDto));
-        return tagDto;
+        Tag updatedTag = tagRepository.findById(id).orElseGet(()-> tagRepository.save(tagMapper.dtoToTag(tagDto)));
+        return tagMapper.tagToDto(updatedTag);
     }
 
     @SneakyThrows
@@ -71,9 +63,6 @@ public class TagServiceImpl implements TagService {
     @Transactional
     public Page<TagDto> findAll(Pageable pageable) {
         Page<Tag> tagPage = tagRepository.findAll(pageable);
-        if (!entityValidator.isPageExists(pageable, tagPage.getTotalElements())) {
-            throw new SystemException(NON_EXISTENT_PAGE);
-        }
         return new PageImpl<>(tagPage.getContent(), tagPage.getPageable(), tagPage.getTotalElements())
                 .map(tagMapper::tagToDto);
     }

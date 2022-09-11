@@ -15,6 +15,7 @@ public class GiftCertificateAttributeDto {
 
     private List<String> tagNameList;
     private String searchPart;
+
     private String orderSort;
     private List<String> sortingFieldList;
 }

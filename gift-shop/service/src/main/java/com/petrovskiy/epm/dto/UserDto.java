@@ -1,15 +1,20 @@
 package com.petrovskiy.epm.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.*;
 import com.petrovskiy.epm.model.Role;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @JsonPropertyOrder({"id", "name", "role"})
 public class UserDto {
 

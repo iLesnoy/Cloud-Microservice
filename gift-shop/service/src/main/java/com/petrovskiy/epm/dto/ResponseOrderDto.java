@@ -3,6 +3,7 @@ package com.petrovskiy.epm.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Builder
 @JsonPropertyOrder({"id", "order-date", "cost", "user", "certificates"})
 public class ResponseOrderDto{
     @JsonProperty("id")

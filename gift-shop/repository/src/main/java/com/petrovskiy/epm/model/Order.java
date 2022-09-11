@@ -3,6 +3,8 @@ package com.petrovskiy.epm.model;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Future;
+import javax.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,17 +24,19 @@ public class Order {
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     private Long id;
 
-    @Column(name = "order_date", nullable = false, updatable = false)
+    @Future
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime purchaseTime;
 
-    @Column(name = "order_cost", nullable = false, updatable = false)
+    @Column(name = "order_cost", nullable = false)
+    /*@Pattern(regexp = "^(\\d+|[\\.\\,]?\\d+){1,2}$")*/
     private BigDecimal cost;
 
     @ManyToOne
     @JoinColumn(name = "users_id")
     private User user;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
     @JoinTable(name="gift_certificate_has_orders"
             ,joinColumns = @JoinColumn(name = "orders_id", referencedColumnName = "id")
             ,inverseJoinColumns = @JoinColumn(name = "gift_certificate_id",referencedColumnName = "id"))

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 /*@Api("Controller GiftCertificateController crud operations")*/
 @RestController
 @RequestMapping("/api/certificates")
@@ -27,7 +29,7 @@ public class GiftCertificateController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     /*@PreAuthorize("hasAuthority('certificates:create')")*/
-    public GiftCertificateDto create(@RequestBody GiftCertificateDto giftCertificateDto) {
+    public GiftCertificateDto create(@Valid @RequestBody GiftCertificateDto giftCertificateDto) {
         GiftCertificateDto created = giftCertificateService.create(giftCertificateDto);
         return created;
     }
