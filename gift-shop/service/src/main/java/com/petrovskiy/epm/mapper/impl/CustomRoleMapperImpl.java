@@ -2,9 +2,9 @@ package com.petrovskiy.epm.mapper.impl;
 
 import com.petrovskiy.epm.dto.RoleDto;
 import com.petrovskiy.epm.mapper.PrivilegeMapper;
-import com.petrovskiy.epm.mapper.PrivilegeMapperImpl;
 import com.petrovskiy.epm.mapper.RoleMapper;
 import com.petrovskiy.epm.model.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 @Component
 public class CustomRoleMapperImpl implements RoleMapper {
 
-
-    private final PrivilegeMapper privilegeMapper = new PrivilegeMapperImpl();
+    @Autowired
+    private PrivilegeMapper privilegeMapper;
 
     public Role dtoToRole(RoleDto roleDto) {
         if (roleDto.getPrivilege() != null) {
