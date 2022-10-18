@@ -8,6 +8,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface GiftCertificateService extends BaseService<GiftCertificateDto> {
     Page<GiftCertificateDto> searchByParameters(GiftCertificateAttributeDto attributeDto, Pageable pageable);
-
     GiftCertificate findCertificateById(Long id);
 }

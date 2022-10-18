@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 
 @Data
@@ -13,9 +16,11 @@ import java.util.List;
 @AllArgsConstructor
 public class GiftCertificateAttributeDto {
 
-    private List<String> tagNameList;
+    private List<@Pattern(regexp = "^[\\p{Alpha}А-Яа-я]{4,40}$") String> tagNameList;
+    @Pattern(regexp = "^[\\p{Alpha}А-Яа-я]{3,20}$")
     private String searchPart;
-
+    @Pattern(regexp = "^(ASC|DESC)\\,?(ASC|DESC)??$")
     private String orderSort;
+    @Pattern(regexp = "^[\\p{Alpha}А-Яа-я]{3,20}$")
     private List<String> sortingFieldList;
 }

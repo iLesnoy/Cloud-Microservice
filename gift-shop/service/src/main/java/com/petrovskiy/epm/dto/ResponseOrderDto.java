@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ import java.util.List;
 @Data
 @Builder
 @JsonPropertyOrder({"id", "order-date", "cost", "user", "certificates"})
-public class ResponseOrderDto{
+public class ResponseOrderDto extends RepresentationModel<ResponseOrderDto> {
     @JsonProperty("id")
     private Long id;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

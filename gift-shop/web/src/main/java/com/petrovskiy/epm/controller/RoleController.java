@@ -2,6 +2,7 @@ package com.petrovskiy.epm.controller;
 
 import com.petrovskiy.epm.RoleService;
 import com.petrovskiy.epm.dto.RoleDto;
+import com.petrovskiy.epm.hateoas.HateoasBuilder;
 import com.petrovskiy.epm.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,8 +15,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/roles")
 public class RoleController {
 
-    @Autowired
     private RoleService roleService;
+    private HateoasBuilder hateoasBuilder;
+
+    @Autowired
+    public RoleController(RoleService roleService, HateoasBuilder hateoasBuilder) {
+        this.roleService = roleService;
+        this.hateoasBuilder = hateoasBuilder;
+    }
 
     @GetMapping
     public Page<RoleDto> findAllRoles(Pageable pageable){
@@ -25,6 +32,7 @@ public class RoleController {
     @GetMapping("{id}")
     public RoleDto findRoleById(@PathVariable Long id){
         RoleDto roleDto = roleService.findById(id);
+        hateoasBuilder.setLinks(roleDto);
         return roleDto;
     }
 

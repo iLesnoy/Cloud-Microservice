@@ -1,11 +1,13 @@
 package com.petrovskiy.epm.dto;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.petrovskiy.epm.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.util.Set;
 
@@ -16,7 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 @NoArgsConstructor
 @Builder
 @JsonPropertyOrder({"id", "name", "role"})
-public class UserDto {
+public class UserDto extends RepresentationModel<UserDto> {
 
     @JsonProperty("id")
     private Long id;

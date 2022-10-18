@@ -1,29 +1,24 @@
 package com.petrovskiy.epm.impl;
 
+import com.petrovskiy.epm.OrderService;
 import com.petrovskiy.epm.dao.OrderRepository;
 import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.RequestOrderDto;
 import com.petrovskiy.epm.dto.ResponseOrderDto;
-import com.petrovskiy.epm.OrderService;
-import com.petrovskiy.epm.dto.UserDto;
-import com.petrovskiy.epm.mapper.GiftCertificateMapper;
+import com.petrovskiy.epm.exception.SystemException;
 import com.petrovskiy.epm.mapper.OrderMapper;
-import com.petrovskiy.epm.mapper.OrderMapperImpl;
-import com.petrovskiy.epm.mapper.impl.CustomOrderMapperImpl;
 import com.petrovskiy.epm.model.GiftCertificate;
 import com.petrovskiy.epm.model.Order;
 import com.petrovskiy.epm.model.User;
 import com.petrovskiy.epm.validator.EntityValidator;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.SystemException;
-
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.petrovskiy.epm.exception.ExceptionCode.*;
@@ -35,12 +30,12 @@ public class OrderServiceImpl implements OrderService {
     private final EntityValidator validator;
     private final UserServiceImpl userService;
     private final GiftCertificateServiceImpl giftCertificateService;
-    private final CustomOrderMapperImpl orderMapper;
+    private final OrderMapper orderMapper;
 
     @Autowired
     public OrderServiceImpl(OrderRepository orderRepository, EntityValidator validator, UserServiceImpl userService,
                             GiftCertificateServiceImpl giftCertificateService,
-                            CustomOrderMapperImpl orderMapper) {
+                            OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
         this.validator = validator;
         this.userService = userService;
@@ -53,13 +48,9 @@ public class OrderServiceImpl implements OrderService {
         throw new UnsupportedOperationException("command is not supported in OrderServiceImpl class ");
     }
 
-    @SneakyThrows
     @Override
     @Transactional
     public ResponseOrderDto create(RequestOrderDto orderDto) {
-        if(!validator.isRequestOrderDataValid(orderDto)){
-            throw new SystemException(INVALID_ATTRIBUTE_LIST);
-        }
         User user = userService.findUserById(orderDto.getUserId());
         List<GiftCertificate> giftCertificates = orderDto.getCertificateIdList()
                 .stream().map(giftCertificateService::findCertificateById).collect(Collectors.toList());
@@ -76,15 +67,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseOrderDto findById(Long id) {
-        return orderMapper.orderToDto(findOrderById(id));
+        Order order = findOrderById(id);
+        return orderMapper.orderToDto(order);
     }
 
-    @SneakyThrows
     private Order findOrderById(Long id) {
         return orderRepository.findById(id).orElseThrow(() -> new SystemException(NON_EXISTENT_ENTITY));
     }
 
-    @SneakyThrows
     @Override
     @Transactional
     public Page<ResponseOrderDto> findAll(Pageable pageable) {

@@ -7,7 +7,6 @@ import org.mapstruct.MappingConstants;
 import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface RoleMapper {
-    Role dtoToRole(RoleDto roleDto);
-    RoleDto roleToDto(Role role);
+public interface RoleMapper extends BaseMapper<Role,RoleDto>{
+
 }

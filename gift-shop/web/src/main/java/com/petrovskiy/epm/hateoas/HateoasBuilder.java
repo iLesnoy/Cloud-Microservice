@@ -1,13 +1,7 @@
 package com.petrovskiy.epm.hateoas;
 
-import com.petrovskiy.epm.controller.GiftCertificateController;
-import com.petrovskiy.epm.controller.OrderController;
-import com.petrovskiy.epm.controller.TagController;
-import com.petrovskiy.epm.controller.UserController;
-import com.petrovskiy.epm.dto.GiftCertificateDto;
-import com.petrovskiy.epm.dto.ResponseOrderDto;
-import com.petrovskiy.epm.dto.TagDto;
-import com.petrovskiy.epm.dto.UserDto;
+import com.petrovskiy.epm.controller.*;
+import com.petrovskiy.epm.dto.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.stereotype.Component;
@@ -29,6 +23,7 @@ public class HateoasBuilder {
     private static final String CERTIFICATES = "certificates";
     private static final String ORDERS = "orders";
     private static final String USERS = "users";
+    private static final String ROLES = "roles";
     private static final int DEFAULT_PAGE_SIZE = 2;
 
     private static final Pageable DEFAULT_PAGEABLE = Pageable.ofSize(DEFAULT_PAGE_SIZE);
@@ -40,6 +35,10 @@ public class HateoasBuilder {
     public void setLinks(GiftCertificateDto certificateDto) {
         setCommonLinks(GiftCertificateController.class, certificateDto, certificateDto.getId(), CERTIFICATES, SELF, UPDATE, DELETE);
         certificateDto.getTagDtoList().forEach(this::setLinks);
+    }
+
+    public void setLinks(RoleDto roleDto) {
+        setCommonLinks(RoleController.class, roleDto, roleDto.getId(), ROLES, SELF, UPDATE, DELETE);
     }
 
     public void setLinks(ResponseOrderDto orderDto) {

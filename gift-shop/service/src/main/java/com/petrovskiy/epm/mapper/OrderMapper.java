@@ -6,12 +6,22 @@ import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {UserMapper.class,GiftCertificateMapper.class}
         ,injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-public interface OrderMapper {
+public interface OrderMapper{/* extends BaseMapper<Order, ResponseOrderDto>{
+
+    @Mapping(source = "user", target = "userDto")
+    @Mapping(source = "certificateList", target = "certificateList")
+    @Override
+    ResponseOrderDto entityToDto(Order entity);
+
+    @Mapping(source = "userDto", target = "user")
+    @Mapping(source = "certificateList", target = "certificateList")
+    @Override
+    Order dtoToEntity(ResponseOrderDto dto);*/
+
     @Mapping(source = "userDto", target = "user")
     @Mapping(source = "certificateList", target = "certificateList")
     Order dtoToOrder(ResponseOrderDto order);

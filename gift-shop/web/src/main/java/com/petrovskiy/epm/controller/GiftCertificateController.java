@@ -3,6 +3,7 @@ package com.petrovskiy.epm.controller;
 import com.petrovskiy.epm.GiftCertificateService;
 import com.petrovskiy.epm.dto.GiftCertificateAttributeDto;
 import com.petrovskiy.epm.dto.GiftCertificateDto;
+import com.petrovskiy.epm.hateoas.HateoasBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,18 +12,18 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-/*@Api("Controller GiftCertificateController crud operations")*/
 @RestController
 @RequestMapping("/api/certificates")
 public class GiftCertificateController {
 
     private final GiftCertificateService giftCertificateService;
-    /*private final HateoasBuilder hateoasBuilder;*/
+    private final HateoasBuilder hateoasBuilder;
 
     @Autowired
-    public GiftCertificateController(GiftCertificateService giftCertificateService) {
+    public GiftCertificateController(GiftCertificateService giftCertificateService,
+                                     HateoasBuilder hateoasBuilder) {
         this.giftCertificateService = giftCertificateService;
-
+        this.hateoasBuilder = hateoasBuilder;
     }
 
     /*@ApiOperation(value = "GiftCertificateDto", notes = "use giftCertificateDto")*/
@@ -35,25 +36,25 @@ public class GiftCertificateController {
     }
 
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     /*@PreAuthorize("hasAuthority('certificates:update')")*/
     public GiftCertificateDto update(@PathVariable Long id,
                                      @RequestBody GiftCertificateDto giftCertificateDto) {
-        GiftCertificateDto updated = giftCertificateService.update(id, giftCertificateDto);
-        return updated;
+        hateoasBuilder.setLinks(giftCertificateService.update(id, giftCertificateDto));
+        return giftCertificateService.update(id, giftCertificateDto);
     }
 
     @GetMapping("/{id}")
     public GiftCertificateDto findById(@PathVariable Long id) {
-        GiftCertificateDto certificateDto = giftCertificateService.findById(id);
-        return certificateDto;
+        hateoasBuilder.setLinks(giftCertificateService.findById(id));
+        return giftCertificateService.findById(id);
     }
 
     @GetMapping
     public Page<GiftCertificateDto> findByAttributes(GiftCertificateAttributeDto attribute, Pageable pageable) {
         Page<GiftCertificateDto> page = giftCertificateService.searchByParameters(attribute, pageable);
-        /*page.getContent().forEach(hateoasBuilder::setLinks);*/
+        page.getContent().forEach(hateoasBuilder::setLinks);
         return page;
     }
 

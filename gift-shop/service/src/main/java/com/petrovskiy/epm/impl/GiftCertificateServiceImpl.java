@@ -7,13 +7,12 @@ import com.petrovskiy.epm.dto.CustomPage;
 import com.petrovskiy.epm.dto.GiftCertificateAttributeDto;
 import com.petrovskiy.epm.dto.GiftCertificateDto;
 import com.petrovskiy.epm.dto.TagDto;
-import com.petrovskiy.epm.mapper.GiftCertificateMapperImpl;
-import com.petrovskiy.epm.mapper.TagMapperImpl;
-import com.petrovskiy.epm.mapper.impl.CustomGiftMapperImpl;
+import com.petrovskiy.epm.exception.SystemException;
+import com.petrovskiy.epm.mapper.GiftCertificateMapper;
+import com.petrovskiy.epm.mapper.TagMapper;
 import com.petrovskiy.epm.model.GiftCertificate;
 import com.petrovskiy.epm.model.Tag;
 import com.petrovskiy.epm.validator.EntityValidator;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,66 +22,72 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import com.petrovskiy.epm.exception.SystemException;
-
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.petrovskiy.epm.exception.ExceptionCode.*;
 import static org.springframework.data.domain.Sort.by;
 
-
 @Service
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
-    private final GiftCertificateMapperImpl giftMapper = new GiftCertificateMapperImpl();
-    private final TagMapperImpl tagMapper = new TagMapperImpl();
+
+    private final GiftCertificateMapper giftMapper;
     private final GiftCertificateRepository giftCertificateRepository;
     private final TagServiceImpl tagService;
-    private final CustomGiftMapperImpl certificateMapper;
+    private final TagMapper tagMapper;
     private EntityValidator validator;
     private final OrderRepository orderRepository;
 
     @Autowired
     public GiftCertificateServiceImpl(GiftCertificateRepository giftCertificateRepository, TagServiceImpl tagService,
-                                      OrderRepository orderRepository, CustomGiftMapperImpl getGiftMapper) {
+                                      OrderRepository orderRepository, GiftCertificateMapper getGiftMapper,
+                                      TagMapper tagMapper) {
         this.giftCertificateRepository = giftCertificateRepository;
         this.tagService = tagService;
         this.orderRepository = orderRepository;
-        this.certificateMapper = getGiftMapper;
+        this.giftMapper = getGiftMapper;
+        this.tagMapper = tagMapper;
     }
 
     @Override
     @Transactional
     public GiftCertificateDto create(GiftCertificateDto giftCertificateDto) {
-        GiftCertificate giftCertificate = certificateMapper.dtoToGift(giftCertificateDto);
+        giftCertificateRepository.findByName(giftCertificateDto.getName()).ifPresent(gift -> {
+            throw new SystemException(DUPLICATE_NAME);
+        });
+        GiftCertificate giftCertificate = giftMapper.dtoToGift(giftCertificateDto);
         setTagListCertificate(giftCertificate);
-        giftCertificateRepository.save(giftCertificate);
-        return certificateMapper.giftToDto(giftCertificate);
+        return giftMapper.giftToDto(giftCertificateRepository.save(giftCertificate));
     }
 
-    private void setTagListCertificate(GiftCertificate certificate) {
-        certificate.setTagList(certificate.getTagList().stream().map(tagService::createTag)
-                .collect(Collectors.toSet()));
-    }
 
     @Override
     @Transactional
     public GiftCertificateDto update(Long id, GiftCertificateDto giftCertificateDto) {
-        GiftCertificate persistedCertificate = findCertificateById(id);
+        AtomicReference<GiftCertificate> giftCertificate = new AtomicReference<>();
+        giftCertificateRepository.findById(id).ifPresentOrElse(certificate -> {
+            setUpdatedFields(certificate,giftCertificateDto);
+            setUpdatedTagList(certificate, giftCertificateDto.getTagDtoList());
+            giftCertificate.set(giftCertificateRepository.save(certificate));
 
-        setUpdatedFields(persistedCertificate, giftCertificateDto);
-        setUpdatedTagList(persistedCertificate, giftCertificateDto.getTagDtoList());
-
-        giftCertificateRepository.save(persistedCertificate);
-        return giftMapper.giftToDto(persistedCertificate);
+        }, () -> {
+            throw new SystemException(NON_EXISTENT_ENTITY);
+        });
+        return giftMapper.giftToDto(giftCertificate.get());
     }
 
     @Override
     public GiftCertificateDto findById(Long id) {
-        GiftCertificate certificateDto = findCertificateById(id);
-        return certificateMapper.giftToDto(certificateDto);
+        return giftCertificateRepository.findById(id).map(giftMapper::giftToDto)
+                .orElseThrow(() -> new SystemException((NON_EXISTENT_ENTITY)));
+    }
+
+    @Override
+    public GiftCertificate findCertificateById(Long id) {
+        return giftMapper.dtoToGift(findById(id));
     }
 
     @Override
@@ -90,19 +95,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         throw new UnsupportedOperationException("command is not supported, please use searchByParameters");
     }
 
-    @SneakyThrows
-    @Override
-    public GiftCertificate findCertificateById(Long id) {
-        return giftCertificateRepository.findById(id).orElseThrow(() -> new SystemException((NON_EXISTENT_ENTITY)));
-    }
-
-    @SneakyThrows
     @Override
     @Transactional
     public Page<GiftCertificateDto> searchByParameters(GiftCertificateAttributeDto attributeDto, Pageable pageable) {
-        if (!validator.isAttributeDtoValid(attributeDto)) {
-            throw new SystemException(INVALID_ATTRIBUTE_LIST);
-        }
         setDefaultParamsIfAbsent(attributeDto);
         Pageable sortedPageable = buildPageableSort(attributeDto.getSortingFieldList(), attributeDto.getOrderSort(), pageable);
         Page<GiftCertificate> certificatePage = Objects.nonNull(attributeDto.getTagNameList())
@@ -132,7 +127,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                 , by(direction, sortingFieldList.toArray(String[]::new)));
     }
 
-    @SneakyThrows
     @Override
     @Transactional
     public void delete(Long id) {
@@ -144,16 +138,15 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }, () -> {
             throw new SystemException(NON_EXISTENT_ENTITY);
         });
+    }
 
-        /*if(optionalGiftCertificate.isPresent()) {
-            if (orderRepository.findFirstByCertificateListId(id).isPresent()) {
-                throw new SystemException(USED_ENTITY);
-            } else {
-                giftCertificateRepository.delete(optionalGiftCertificate.get());
-            }
-        }else throw new SystemException(NON_EXISTENT_ENTITY);*/
-        /*orderRepository.findFirstByCertificateListId(id).ifPresentOrElse(a->giftCertificateRepository.delete(optionalGiftCertificate.get()),
-                ()->{throw new SystemException(NON_EXISTENT_ENTITY);});*/
+
+    private void setUpdatedTagList(GiftCertificate persistedCertificate, List<TagDto> tagDtoList) {
+        Set<Tag> updatedTagSet = tagDtoList.stream()
+                .map(tagMapper::dtoToTag)
+                .map(tagService::createTag)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        persistedCertificate.setTagList(updatedTagSet);
     }
 
     private void setUpdatedFields(GiftCertificate persistedCertificate, GiftCertificateDto updatedCertificateDto) {
@@ -161,29 +154,16 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         String description = updatedCertificateDto.getDescription();
         BigDecimal price = updatedCertificateDto.getPrice();
         int duration = updatedCertificateDto.getDuration();
-        if (Objects.nonNull(name) && !persistedCertificate.getName().equals(name)) {
-            persistedCertificate.setName(name);
-        }
-        if (Objects.nonNull(description) && !persistedCertificate.getDescription().equals(description)) {
-            persistedCertificate.setDescription(description);
-        }
-        if (Objects.nonNull(price) && !persistedCertificate.getPrice().equals(price)) {
-            persistedCertificate.setPrice(price);
-        }
-        if (duration != 0 && persistedCertificate.getDuration() != duration) {
-            persistedCertificate.setDuration(duration);
-        }
+
+        persistedCertificate.setName(name);
+        persistedCertificate.setDescription(description);
+        persistedCertificate.setPrice(price);
+        persistedCertificate.setDuration(duration);
     }
 
-
-    private void setUpdatedTagList(GiftCertificate persistedCertificate, List<TagDto> tagDtoList) {
-        if (CollectionUtils.isEmpty(tagDtoList)) {
-            return;
-        }
-        Set<Tag> updatedTagSet = tagDtoList.stream()
-                .map(tagMapper::dtoToTag)
-                .map(tagService::createTag)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        persistedCertificate.setTagList(updatedTagSet);
+    private void setTagListCertificate(GiftCertificate certificate) {
+        certificate.setTagList(certificate.getTagList().stream().map(tagService::createTag)
+                .collect(Collectors.toSet()));
     }
+
 }

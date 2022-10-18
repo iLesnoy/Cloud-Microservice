@@ -15,7 +15,7 @@ public class CustomRoleMapperImpl implements RoleMapper {
     @Autowired
     private PrivilegeMapper privilegeMapper;
 
-    public Role dtoToRole(RoleDto roleDto) {
+    public Role dtoToEntity(RoleDto roleDto) {
         if (roleDto.getPrivilege() != null) {
             return Role.builder()
                     .id(roleDto.getId())
@@ -31,7 +31,7 @@ public class CustomRoleMapperImpl implements RoleMapper {
         }
     }
 
-    public RoleDto roleToDto(Role role) {
+    public RoleDto entityToDto(Role role) {
         return RoleDto.builder()
                 .id(role.getId())
                 .name(role.getName())
@@ -40,4 +40,5 @@ public class CustomRoleMapperImpl implements RoleMapper {
                         .map(privilegeMapper::privilegeToDto)
                         .collect(Collectors.toSet())).build();
     }
+
 }

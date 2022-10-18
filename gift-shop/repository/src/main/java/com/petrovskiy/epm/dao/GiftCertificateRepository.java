@@ -24,4 +24,6 @@ public interface GiftCertificateRepository extends JpaRepository<GiftCertificate
             , @Param("searchPart") String searchPart, Pageable pageable);
 
     Optional<GiftCertificate> findFirstByTagList_Id(Long tagId);
+
+    Optional<GiftCertificate> findByName(String name);
 }

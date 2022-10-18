@@ -52,6 +52,11 @@
             <artifactId>mapstruct</artifactId>
             <version>1.5.2.Final</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.2.4.Final</version>
+        </dependency>
 
     </dependencies>
 
